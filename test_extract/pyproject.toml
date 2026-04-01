@@ -1,0 +1,11 @@
+[project]
+name = "rag-query"
+version = "1.0.0"
+description = "RAG Knowledge Base Query Skill"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.32.0",
+]
+
+[project.scripts]
+rag-query = "main:main"
