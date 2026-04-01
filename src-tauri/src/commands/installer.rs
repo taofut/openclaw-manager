@@ -1069,24 +1069,33 @@ pub async fn install_openclaw_bat() -> Result<InstallResult, String> {
             });
         }
         
-        match shell::run_bash_output(&format!("chmod +x '{}' && bash '{}'", sh_path_str, sh_path_str)) {
-            Ok(_output) => {
-                info!("[一键部署OpenClaw] ✓ 安装完成");
-                Ok(InstallResult {
-                    success: true,
-                    message: "OpenClaw 部署完成！请重启应用使环境变量生效。".to_string(),
-                    error: None,
-                })
-            }
-            Err(e) => {
-                error!("[一键部署OpenClaw] ✗ 安装失败: {}", e);
-                Ok(InstallResult {
-                    success: false,
-                    message: "OpenClaw 部署失败".to_string(),
-                    error: Some(e),
-                })
-            }
-        }
+        let script_content = std::fs::read_to_string(&sh_path)
+            .map_err(|e| format!("读取脚本失败: {}", e))?;
+        
+        let script_with_pause = format!(
+            "{}\n\necho \"\"\necho \"按回车键关闭此窗口...\"\nread",
+            script_content.trim()
+        );
+        
+        let command_path = "/tmp/openclaw_install_all.command";
+        std::fs::write(command_path, &script_with_pause)
+            .map_err(|e| format!("创建脚本失败: {}", e))?;
+        
+        std::process::Command::new("chmod")
+            .args(["+x", command_path])
+            .output()
+            .map_err(|e| format!("设置权限失败: {}", e))?;
+        
+        std::process::Command::new("open")
+            .arg(command_path)
+            .spawn()
+            .map_err(|e| format!("启动终端失败: {}", e))?;
+        
+        Ok(InstallResult {
+            success: true,
+            message: "已打开终端窗口，请等待安装完成后按回车键关闭".to_string(),
+            error: None,
+        })
     } else {
         Ok(InstallResult {
             success: false,
@@ -1152,24 +1161,33 @@ pub async fn uninstall_all_bat() -> Result<InstallResult, String> {
             });
         }
         
-        match shell::run_bash_output(&format!("chmod +x '{}' && bash '{}'", sh_path_str, sh_path_str)) {
-            Ok(_output) => {
-                info!("[一键清理] ✓ 卸载完成");
-                Ok(InstallResult {
-                    success: true,
-                    message: "OpenClaw 清理完成！请重启应用使环境变量生效。".to_string(),
-                    error: None,
-                })
-            }
-            Err(e) => {
-                error!("[一键清理] ✗ 卸载失败: {}", e);
-                Ok(InstallResult {
-                    success: false,
-                    message: "OpenClaw 清理失败".to_string(),
-                    error: Some(e),
-                })
-            }
-        }
+        let script_content = std::fs::read_to_string(&sh_path)
+            .map_err(|e| format!("读取脚本失败: {}", e))?;
+        
+        let script_with_pause = format!(
+            "{}\n\necho \"\"\necho \"按回车键关闭此窗口...\"\nread",
+            script_content.trim()
+        );
+        
+        let command_path = "/tmp/openclaw_uninstall_all.command";
+        std::fs::write(command_path, &script_with_pause)
+            .map_err(|e| format!("创建脚本失败: {}", e))?;
+        
+        std::process::Command::new("chmod")
+            .args(["+x", command_path])
+            .output()
+            .map_err(|e| format!("设置权限失败: {}", e))?;
+        
+        std::process::Command::new("open")
+            .arg(command_path)
+            .spawn()
+            .map_err(|e| format!("启动终端失败: {}", e))?;
+        
+        Ok(InstallResult {
+            success: true,
+            message: "已打开终端窗口，请等待清理完成后按回车键关闭".to_string(),
+            error: None,
+        })
     } else {
         Ok(InstallResult {
             success: false,
