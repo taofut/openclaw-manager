@@ -285,15 +285,18 @@ pub async fn start_service() -> Result<String, String> {
             info!("[服务] 检测到启动失败，尝试清理 PID: {}", failed_pid);
             let _ = kill_process_by_pid(failed_pid);
             std::thread::sleep(std::time::Duration::from_millis(500));
-            // 同时清理计划任务
-            let _ = Command::new("schtasks")
-                .args(["/End", "/TN", "OpenClaw Gateway"])
-                .creation_flags(CREATE_NO_WINDOW)
-                .output();
-            let _ = Command::new("schtasks")
-                .args(["/Delete", "/TN", "OpenClaw Gateway", "/F"])
-                .creation_flags(CREATE_NO_WINDOW)
-                .output();
+            // 同时清理计划任务（仅 Windows）
+            #[cfg(windows)]
+            {
+                let _ = Command::new("schtasks")
+                    .args(["/End", "/TN", "OpenClaw Gateway"])
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .output();
+                let _ = Command::new("schtasks")
+                    .args(["/Delete", "/TN", "OpenClaw Gateway", "/F"])
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .output();
+            }
         }
         
         if let Some(pid) = check_port_listening(SERVICE_PORT) {

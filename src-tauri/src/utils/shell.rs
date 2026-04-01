@@ -427,10 +427,19 @@ fn find_openclaw_mjs_path() -> Option<String> {
 /// 获取 npm 全局安装路径
 fn run_npm_root() -> Result<String, String> {
     let output = if platform::is_windows() {
-        Command::new("cmd")
-            .args(["/c", "npm root -g"])
-            .creation_flags(CREATE_NO_WINDOW)
-            .output()
+        #[cfg(windows)]
+        {
+            Command::new("cmd")
+                .args(["/c", "npm root -g"])
+                .creation_flags(CREATE_NO_WINDOW)
+                .output()
+        }
+        #[cfg(not(windows))]
+        {
+            Command::new("cmd")
+                .args(["/c", "npm root -g"])
+                .output()
+        }
     } else {
         Command::new("npm")
             .args(["root", "-g"])
