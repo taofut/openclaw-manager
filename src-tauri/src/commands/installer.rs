@@ -1073,21 +1073,27 @@ pub async fn install_openclaw_bat() -> Result<InstallResult, String> {
             .map_err(|e| format!("读取脚本失败: {}", e))?;
         
         let script_with_pause = format!(
-            "{}\n\necho \"\"\necho \"按回车键关闭此窗口...\"\nread",
+            "{}\necho \"\"\necho \"按回车键关闭此窗口...\"\nread",
             script_content.trim()
         );
         
-        let command_path = "/tmp/openclaw_install_all.command";
-        std::fs::write(command_path, &script_with_pause)
+        let sh_script_path = "/tmp/openclaw_install_all.sh";
+        std::fs::write(sh_script_path, &script_with_pause)
             .map_err(|e| format!("创建脚本失败: {}", e))?;
         
         std::process::Command::new("chmod")
-            .args(["+x", command_path])
+            .args(["+x", sh_script_path])
             .output()
             .map_err(|e| format!("设置权限失败: {}", e))?;
         
-        std::process::Command::new("open")
-            .arg(command_path)
+        let script = format!(
+            r#"tell application "Terminal" to do script "bash '{}'" activate"#,
+            sh_script_path
+        );
+        
+        std::process::Command::new("osascript")
+            .arg("-e")
+            .arg(&script)
             .spawn()
             .map_err(|e| format!("启动终端失败: {}", e))?;
         
@@ -1165,21 +1171,27 @@ pub async fn uninstall_all_bat() -> Result<InstallResult, String> {
             .map_err(|e| format!("读取脚本失败: {}", e))?;
         
         let script_with_pause = format!(
-            "{}\n\necho \"\"\necho \"按回车键关闭此窗口...\"\nread",
+            "{}\necho \"\"\necho \"按回车键关闭此窗口...\"\nread",
             script_content.trim()
         );
         
-        let command_path = "/tmp/openclaw_uninstall_all.command";
-        std::fs::write(command_path, &script_with_pause)
+        let sh_script_path = "/tmp/openclaw_uninstall_all.sh";
+        std::fs::write(sh_script_path, &script_with_pause)
             .map_err(|e| format!("创建脚本失败: {}", e))?;
         
         std::process::Command::new("chmod")
-            .args(["+x", command_path])
+            .args(["+x", sh_script_path])
             .output()
             .map_err(|e| format!("设置权限失败: {}", e))?;
         
-        std::process::Command::new("open")
-            .arg(command_path)
+        let script = format!(
+            r#"tell application "Terminal" to do script "bash '{}'" activate"#,
+            sh_script_path
+        );
+        
+        std::process::Command::new("osascript")
+            .arg("-e")
+            .arg(&script)
             .spawn()
             .map_err(|e| format!("启动终端失败: {}", e))?;
         
